@@ -1,0 +1,6 @@
+@LetGoNowApi_HostAddress = http://localhost:5261
+
+GET {{LetGoNowApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

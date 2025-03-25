@@ -1,0 +1,19 @@
+# Visual Studio files
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.sln.docstates
+
+# Build output
+/bin/
+/obj/
+
+# NuGet Packages
+*.nupkg
+packages/
+
+# Other
+*.log
+*.md
