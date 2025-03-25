@@ -1,4 +1,4 @@
-﻿# Sử dụng image base của .NET SDK để build ứng dụng
+# Sử dụng image base của .NET SDK để build ứng dụng
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
