@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Supabase;
 using LetGoNowApi.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace LetGoNowApi.Controllers
 {
@@ -8,31 +8,47 @@ namespace LetGoNowApi.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly LetGoNowDbContext _context;
+        private readonly Supabase.Client _supabaseClient;
 
-        public AuthController(LetGoNowDbContext context)
+        public AuthController(Supabase.Client supabaseClient)
         {
-            _context = context;
+            _supabaseClient = supabaseClient;
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == loginDto.Username && u.PasswordHash == loginDto.Password);
-
-            if (user == null)
+            try
             {
-                return Unauthorized("Invalid username or password");
-            }
+                // Đăng nhập bằng email và mật khẩu
+                var session = await _supabaseClient.Auth.SignIn(model.Email, model.Password);
+                if (session == null)
+                {
+                    return Unauthorized(new { message = "Invalid email or password" });
+                }
 
-            return Ok(new { message = "Login successful", userId = user.Id, username = user.Username });
+                // Kiểm tra xem user có vai trò admin không
+                var admin = await _supabaseClient.From<Admin>()
+                    .Where(x => x.Email == model.Email)
+                    .Single();
+
+                if (admin == null || admin.Role != "admin")
+                {
+                    return Unauthorized(new { message = "User is not an admin" });
+                }
+
+                return Ok(new { token = session.AccessToken });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 
-    public class LoginDto
+    public class LoginModel
     {
-        public string Username { get; set; }
+        public string Email { get; set; }
         public string Password { get; set; }
     }
 }
